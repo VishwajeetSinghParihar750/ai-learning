@@ -1,0 +1,52 @@
+[
+    {
+        "id": 1,
+        "title": "Python Programming",
+        "content": "Python is a popular programming language used for web development data science machine learning and automation. Python provides simple syntax and a large ecosystem of libraries."
+    },
+    {
+        "id": 2,
+        "title": "Machine Learning",
+        "content": "Machine learning uses data to train models that make predictions. Python is commonly used for machine learning because of libraries such as numpy pandas and pytorch."
+    },
+    {
+        "id": 3,
+        "title": "Web Development",
+        "content": "Web development involves building websites and web applications. Python JavaScript HTML and CSS are commonly used technologies in web development."
+    },
+    {
+        "id": 4,
+        "title": "Databases",
+        "content": "Databases store and retrieve data efficiently. SQL is the standard language for querying relational databases. Applications often connect databases with backend services."
+    },
+    {
+        "id": 5,
+        "title": "Artificial Intelligence",
+        "content": "Artificial intelligence focuses on building systems that can reason learn and solve problems. Machine learning is a major area within artificial intelligence."
+    },
+    {
+        "id": 6,
+        "title": "Football",
+        "content": "Football is a popular sport played worldwide. Teams compete to score goals and win matches. Football requires teamwork strategy and athletic ability."
+    },
+    {
+        "id": 7,
+        "title": "Cricket",
+        "content": "Cricket is one of the most popular sports in India. Players score runs and take wickets. International cricket tournaments attract millions of fans."
+    },
+    {
+        "id": 8,
+        "title": "Space Exploration",
+        "content": "Space exploration involves studying planets stars galaxies and the universe. Rockets satellites and spacecraft are important tools for exploration."
+    },
+    {
+        "id": 9,
+        "title": "Climate Change",
+        "content": "Climate change refers to long term shifts in temperature and weather patterns. Scientists study greenhouse gases and environmental impacts."
+    },
+    {
+        "id": 10,
+        "title": "Cybersecurity",
+        "content": "Cybersecurity protects systems networks and data from attacks. Encryption authentication and monitoring are important cybersecurity practices."
+    }
+]
