@@ -1,7 +1,7 @@
 
 from pathlib import Path
 import os
-# from sentence_transformers import SentenceTransformer
+from sentence_transformers import SentenceTransformer
 import chromadb
 from google import genai
 from dotenv import load_dotenv
@@ -11,6 +11,7 @@ load_dotenv()
 
 chromaClient = chromadb.PersistentClient(path = "./chromaDbData")
 collection = chromaClient.get_or_create_collection(name = "codebase")
+embeddingModel = SentenceTransformer(os.getenv("EMBEDDING_MODEL"))
 
 # i wanna go through the whole codebase and each file i wanna embed separately 
 # need to use ai for embedding 
@@ -125,6 +126,7 @@ def embed():
                               }
                               for chunk in chunks
                            ],
+                           embeddings= embeddingModel.encode([chunk.content for chunk in chunks]).tolist(),
                            ids= [f"{file._str}_{i}" for i in range(len(chunks))]
                         )
             
