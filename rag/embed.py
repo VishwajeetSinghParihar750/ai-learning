@@ -51,7 +51,6 @@ Rules:
 
 7. Metadata extraction.
    For each chunk return:
-   - chunk_id
    - title
    - section_path
    - content
@@ -63,7 +62,6 @@ Format:
 {
   "chunks": [
     {
-      "chunk_id": "1",
       "title": "...",
       "section_path": ["...", "..."],
       "content": "..."
@@ -79,9 +77,7 @@ Document:
 
 
 class chunkSchema(BaseModel):
-    chunk_id:str
     title:str
-    
     section_path: str
     content: str
 class chunksSchema(BaseModel):
@@ -89,13 +85,14 @@ class chunksSchema(BaseModel):
 
 geminiConfig  = genai.types.GenerateContentConfig(system_instruction=geminiSytemPrompt, response_schema= chunksSchema ,response_mime_type="application/json")
 
-def getEmbedding(text : str)->list[int]:
+def getChunks(text : str)->list[chunkSchema]:
     res = geminiClient.models.generate_content(
         model = "gemini-2.5-flash",
         contents = text,
         config= geminiConfig
     )
-    return res.text
+    return res.parsed.chunks
+
 
 
 def embed():
@@ -103,18 +100,34 @@ def embed():
 
     for file in root.rglob("*"):
         if file.is_file():
-            print(file)
-            # fileData = file.read_text(encoding="utf-8")
-            # toEmbed = geminiSytemPrompt.replace("{{DOCUMENT_CONTENT}}" , fileData).replace("{{DOCUMENT_PATH}}", file._str)
-            # print(toEmbed)
-            # embedding = getEmbedding(toEmbed)
-            # print(embedding)
 
-                
+            fileSize = file.stat().st_size 
+            if  fileSize > 1000: 
+                print(f"skipped file {file._str} cause its size is {fileSize} ")
+                continue
+            
 
+            fileData = file.read_text(encoding="utf-8")
 
-                
+            toEmbed = geminiSytemPrompt.replace("{{DOCUMENT_CONTENT}}" , fileData).replace("{{DOCUMENT_PATH}}", file._str)
 
+            print(f"processing file: {file._str}, fileSize : {fileSize}")
+
+            chunks = getChunks(toEmbed)
+            print([chunk.title for chunk in chunks])
+
+            collection.add(documents= [chunk.content for chunk in chunks] , 
+                           metadatas= 
+                           [ 
+                              { 
+                                 "title" : chunk.title,
+                                 "section_path": chunk.section_path
+                              }
+                              for chunk in chunks
+                           ],
+                           ids= [f"{file._str}_{i}" for i in range(len(chunks))]
+                        )
+            
             
 embed()
 
