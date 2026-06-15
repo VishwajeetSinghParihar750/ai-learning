@@ -1,0 +1,39 @@
+services:
+  postgres-db:
+    image: postgres:15-alpine
+    container_name: node-api-db
+    restart: always
+    environment:
+      POSTGRES_USER: api_user
+      POSTGRES_PASSWORD: api_secure_password_987
+      POSTGRES_DB: node_api_prod
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U api_user -d node_api_prod"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      target: production
+    container_name: node-api-service
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DATABASE_URL=postgresql://api_user:api_secure_password_987@postgres-db:5432/node_api_prod
+      - JWT_SECRET=production_ready_extremely_secure_secret_key_12345
+      - JWT_EXPIRES_IN=24h
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+
+volumes:
+  pgdata:
