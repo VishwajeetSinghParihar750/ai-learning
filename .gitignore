@@ -1,7 +1,5 @@
-*/node_modules
-node_modules
-data
-*/data
-.env
-*/.env
+**/*/node_modules
+**/*/.env
 */.venv
+**/*/chromaDbData
+.gitignore

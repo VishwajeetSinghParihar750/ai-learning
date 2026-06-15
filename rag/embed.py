@@ -2,16 +2,20 @@
 from pathlib import Path
 import os
 from sentence_transformers import SentenceTransformer
-import chromadb
 from google import genai
 from dotenv import load_dotenv
 from pydantic import BaseModel
+from pinecone import Pinecone, ServerlessSpec
+from random import randint
 
 load_dotenv()
 
-chromaClient = chromadb.PersistentClient(path = "./chromaDbData")
-collection = chromaClient.get_or_create_collection(name = "codebase")
-embeddingModel = SentenceTransformer(os.getenv("EMBEDDING_MODEL"))
+pc =  Pinecone(api_key= os.getenv("PINECONE_API_KEY") )
+codebaseName = f"codebase-{randint(1, 12323)}"
+pc.create_index(name=codebaseName, dimension=384, spec= ServerlessSpec(region="us-east-1", cloud="aws"))
+index = pc.index(codebaseName)
+
+embeddingModel = SentenceTransformer(model_name_or_path= os.getenv("EMBEDDING_MODEL"))
 
 # i wanna go through the whole codebase and each file i wanna embed separately 
 # need to use ai for embedding 
@@ -97,39 +101,54 @@ def getChunks(text : str)->list[chunkSchema]:
 
 
 def embed():
-    root = Path("./codebase")
+   root = Path("./codebase")
 
-    for file in root.rglob("*"):
-        if file.is_file():
+   print('came here')
+   for file in root.rglob("*"):
+      
+      
+      
+      print(file._str)
 
-            fileSize = file.stat().st_size 
-            if  fileSize > 1000: 
-                print(f"skipped file {file._str} cause its size is {fileSize} ")
-                continue
-            
+      if file.is_file():
 
-            fileData = file.read_text(encoding="utf-8")
+         fileSize = file.stat().st_size 
+         if  fileSize > 1000: 
+               print(f"skipped file {file._str} cause its size is {fileSize} ")
+               continue
+         
 
-            toEmbed = geminiSytemPrompt.replace("{{DOCUMENT_CONTENT}}" , fileData).replace("{{DOCUMENT_PATH}}", file._str)
+         fileData = file.read_text(encoding="utf-8")
 
-            print(f"processing file: {file._str}, fileSize : {fileSize}")
+         toEmbed = geminiSytemPrompt.replace("{{DOCUMENT_CONTENT}}" , fileData).replace("{{DOCUMENT_PATH}}", file._str)
 
-            chunks = getChunks(toEmbed)
-            print([chunk.title for chunk in chunks])
+         print(f"processing file: {file._str}, fileSize : {fileSize}")
 
-            collection.add(documents= [chunk.content for chunk in chunks] , 
-                           metadatas= 
-                           [ 
-                              { 
-                                 "title" : chunk.title,
-                                 "section_path": chunk.section_path
-                              }
-                              for chunk in chunks
-                           ],
-                           embeddings= embeddingModel.encode([chunk.content for chunk in chunks]).tolist(),
-                           ids= [f"{file._str}_{i}" for i in range(len(chunks))]
-                        )
-            
+         chunks = getChunks(toEmbed)
+         print([chunk.title for chunk in chunks])
+
+
+         embeddings = embeddingModel.encode(
+            [chunk.content for chunk in chunks]
+         ).tolist()
+
+         index.upsert(
+            vectors=[
+               {
+                     "id": f"{file}_{i}",
+                     "metadata": {
+                        "title": chunk.title,
+                        "section_path": chunk.section_path,
+                        "content": chunk.content
+                     },
+                     "values": embeddings[i]
+               }
+               for i, chunk in enumerate(chunks)
+            ]
+         )
+
+         
+         
             
 embed()
 
