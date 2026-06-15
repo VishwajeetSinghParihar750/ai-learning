@@ -3,3 +3,4 @@
 */.venv
 **/*/chromaDbData
 .gitignore
+rag/codebase
